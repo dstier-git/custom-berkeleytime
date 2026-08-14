@@ -1,0 +1,1331 @@
+<title>Fall 2026 Course Triage</title>
+
+<style>
+  /* ---------- tokens: light is the base, both themes defined at token level ---------- */
+  :root {
+    --ground:   #f6f7f9;
+    --surface:  #ffffff;
+    --surface-2:#eef1f5;
+    --ink:      #141a22;
+    --muted:    #5a6672;
+    --faint:    #8a95a1;
+    --line:     #e2e6eb;
+    --line-2:   #cfd6de;
+    --accent:   #1f3a5f;
+    --accent-ink:#ffffff;
+    --gold:     #a8761c;
+    --gold-bg:  #fdf3df;
+    --clear:    #1e7a55;
+    --clear-bg: #e6f4ed;
+    --review:   #8a6010;
+    --review-bg:#fbf1dc;
+    --blocked:  #a8342a;
+    --blocked-bg:#fbe9e7;
+    --perm:     #4f5a6e;
+    --perm-bg:  #eceff4;
+    --shadow:   0 1px 2px rgba(20,26,34,.06), 0 4px 12px rgba(20,26,34,.05);
+
+    --sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  /* system-dark (no stamp) — explicit light choice still wins */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground:   #0e141b;
+      --surface:  #151d26;
+      --surface-2:#1c2632;
+      --ink:      #e6ebf1;
+      --muted:    #97a4b2;
+      --faint:    #6d7c8c;
+      --line:     #243040;
+      --line-2:   #33435a;
+      --accent:   #86aede;
+      --accent-ink:#0e141b;
+      --gold:     #e0b052;
+      --gold-bg:  #33280f;
+      --clear:    #56c795;
+      --clear-bg: #10301f;
+      --review:   #dda94a;
+      --review-bg:#332711;
+      --blocked:  #ec8177;
+      --blocked-bg:#3a1a16;
+      --perm:     #9aa7bb;
+      --perm-bg:  #1e2733;
+      --shadow:   0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3);
+    }
+  }
+  /* explicit dark choice */
+  :root[data-theme="dark"] {
+    --ground:   #0e141b;
+    --surface:  #151d26;
+    --surface-2:#1c2632;
+    --ink:      #e6ebf1;
+    --muted:    #97a4b2;
+    --faint:    #6d7c8c;
+    --line:     #243040;
+    --line-2:   #33435a;
+    --accent:   #86aede;
+    --accent-ink:#0e141b;
+    --gold:     #e0b052;
+    --gold-bg:  #33280f;
+    --clear:    #56c795;
+    --clear-bg: #10301f;
+    --review:   #dda94a;
+    --review-bg:#332711;
+    --blocked:  #ec8177;
+    --blocked-bg:#3a1a16;
+    --perm:     #9aa7bb;
+    --perm-bg:  #1e2733;
+    --shadow:   0 1px 2px rgba(0,0,0,.4), 0 4px 14px rgba(0,0,0,.3);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 1280px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  /* ---------- masthead ---------- */
+  .masthead { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px 24px; margin-bottom: 22px; }
+  .masthead h1 {
+    font-size: clamp(22px, 3vw, 30px);
+    line-height: 1.15; margin: 0; letter-spacing: -.02em; text-wrap: balance;
+  }
+  .kicker {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .13em;
+    text-transform: uppercase; color: var(--faint); margin: 0 0 6px;
+  }
+  .masthead p.sub { margin: 6px 0 0; color: var(--muted); font-size: 14px; max-width: 62ch; }
+  .theme-btn {
+    margin-left: auto; align-self: flex-start;
+    font: 500 12px/1 var(--sans); color: var(--muted);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 3px; padding: 8px 11px; cursor: pointer;
+  }
+  .theme-btn:hover { border-color: var(--line-2); color: var(--ink); }
+
+  /* ---------- stat tiles ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 1px;
+           background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; margin-bottom: 22px; }
+  .tile { background: var(--surface); padding: 13px 14px; }
+  .tile .n { font-family: var(--mono); font-size: 23px; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .tile .l { font-size: 11px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); margin-top: 5px; }
+  .tile.is-clear .n { color: var(--clear); }
+  .tile.is-gold  .n { color: var(--gold); }
+  .tile.is-review .n { color: var(--review); }
+  .tile.is-blocked .n { color: var(--blocked); }
+
+  /* ---------- tabs ---------- */
+  .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--line); margin-bottom: 14px; }
+  .tab {
+    font: 600 13px/1 var(--sans); color: var(--muted);
+    background: none; border: 0; border-bottom: 2px solid transparent;
+    padding: 11px 14px; cursor: pointer;
+  }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); }
+  .tab .count { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: 6px; }
+
+  /* ---------- controls ---------- */
+  .controls {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--ground); border-bottom: 1px solid var(--line);
+    padding: 12px 0 13px; margin-bottom: 4px;
+  }
+  .searchrow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .search { flex: 1 1 260px; position: relative; }
+  .search input {
+    width: 100%; font: 400 14px/1.3 var(--sans); color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line-2);
+    border-radius: 3px; padding: 10px 12px;
+  }
+  .search input::placeholder { color: var(--faint); }
+  select, .mini {
+    font: 500 12px/1 var(--sans); color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line-2);
+    border-radius: 3px; padding: 9px 10px; cursor: pointer;
+  }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  /* ---------- dropdown checkbox ---------- */
+  .dropdown { position: relative; display: inline-block; }
+  .dropdown-toggle {
+    font: 500 12px/1 var(--sans); color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line-2);
+    border-radius: 3px; padding: 9px 10px; cursor: pointer;
+    white-space: nowrap; user-select: none;
+  }
+  .dropdown-toggle .arrow { font-size: 10px; margin-left: 4px; opacity: .55; }
+  .dropdown-toggle .dcount { font-family: var(--mono); font-size: 10px; opacity: .72; margin-left: 5px; }
+  .dropdown-panel {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; z-index: 30;
+    background: var(--surface); border: 1px solid var(--line-2); border-radius: 4px;
+    box-shadow: var(--shadow); width: 230px; max-height: 370px;
+    flex-direction: column;
+  }
+  .dropdown.open .dropdown-panel { display: flex; }
+  .dropdown-head {
+    display: flex; gap: 6px; align-items: center;
+    padding: 8px 8px 6px; border-bottom: 1px solid var(--line);
+  }
+  .dropdown-head input {
+    flex: 1; font: 400 12px/1.3 var(--sans); color: var(--ink);
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 3px; padding: 6px 8px; min-width: 0;
+  }
+  .dropdown-head input::placeholder { color: var(--faint); }
+  .selall {
+    font: 600 10px/1 var(--sans); letter-spacing: .04em; text-transform: uppercase;
+    color: var(--accent); background: none; border: 0; padding: 4px 6px;
+    cursor: pointer; white-space: nowrap; border-radius: 2px;
+  }
+  .selall:hover { background: var(--surface-2); }
+  .dropdown-list {
+    overflow-y: auto; flex: 1; padding: 4px 0;
+  }
+  .dropdown-list label {
+    display: flex; align-items: center; gap: 7px;
+    font: 400 12px/1 var(--sans); color: var(--ink);
+    padding: 5px 10px; cursor: pointer;
+  }
+  .dropdown-list label:hover { background: var(--surface-2); }
+  .dropdown-list input[type="checkbox"] {
+    width: 14px; height: 14px; margin: 0; accent-color: var(--accent); cursor: pointer;
+  }
+  .dropdown-list .noitems { padding: 12px 10px; font-size: 12px; color: var(--faint); }
+
+  .chiprow { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 11px; align-items: flex-start; }
+  .chipgroup { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .chipgroup > .glabel {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--faint); margin-right: 3px;
+  }
+  .chip {
+    font: 500 12px/1 var(--sans); color: var(--muted);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 3px; padding: 6px 9px; cursor: pointer; white-space: nowrap;
+  }
+  .chip:hover { border-color: var(--line-2); color: var(--ink); }
+  .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .chip .c { font-family: var(--mono); font-size: 10px; opacity: .72; margin-left: 5px; }
+
+  .resultline {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin: 14px 0 10px; font-size: 13px; color: var(--muted);
+  }
+  .resultline b { font-family: var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+  .linkbtn { font: 500 12px/1 var(--sans); color: var(--accent); background: none; border: 0; padding: 4px 2px; cursor: pointer; text-decoration: underline; }
+
+  /* ---------- sort header ---------- */
+  .sorthead { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+  .sortbtn {
+    font: 500 12px/1 var(--sans); color: var(--muted);
+    background: none; border: 1px solid transparent; border-radius: 3px;
+    padding: 6px 8px; cursor: pointer;
+  }
+  .sortbtn:hover { color: var(--ink); border-color: var(--line); }
+  .sortbtn[aria-pressed="true"] { color: var(--ink); border-color: var(--line-2); background: var(--surface); }
+  .sortbtn .dir { font-family: var(--mono); font-size: 10px; margin-left: 4px; }
+
+  /* ---------- ledger ---------- */
+  .ledger { display: flex; flex-direction: column; gap: 6px; }
+
+  /* one card per course; its sections live inside it */
+  .course {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 4px; position: relative; overflow: hidden;
+  }
+  .course::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--line-2);
+  }
+  .course.s-clear::before   { background: var(--clear); }
+  .course.s-review::before  { background: var(--review); }
+  .course.s-blocked::before { background: var(--blocked); }
+  .course.s-perm::before    { background: var(--perm); }
+
+  /* the course header and every section row share one grid, so the seats and
+     time columns stay in a single vertical line down the card */
+  .gridrow {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px 128px 32px;
+    gap: 14px; align-items: start;
+    padding: 12px 12px 12px 14px;
+  }
+
+  .sections { border-top: 1px solid var(--line); background: var(--surface-2); }
+  .srow { padding-top: 9px; padding-bottom: 9px; }
+  .srow + .srow { border-top: 1px solid var(--line); }
+  .srow .metaline { margin-top: 4px; }
+  .srow .badges { margin-top: 5px; }
+  .secid { font-family: var(--mono); font-size: 12.5px; font-weight: 600; letter-spacing: -.01em; }
+  .nsec { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .moresec {
+    display: block; width: 100%; text-align: left;
+    font: 500 12px/1 var(--sans); color: var(--accent);
+    background: none; border: 0; border-top: 1px solid var(--line);
+    padding: 10px 14px; cursor: pointer;
+  }
+  .moresec:hover { background: var(--surface); }
+
+  .cell-main { min-width: 0; }
+  .codeline { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; }
+  .code { font-family: var(--mono); font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
+  .code a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line-2); }
+  .code a:hover { border-bottom-color: var(--accent); color: var(--accent); }
+  .sec { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+  .title { font-size: 14px; margin-top: 2px; color: var(--ink); }
+  .metaline { font-size: 12px; color: var(--muted); margin-top: 5px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+  .metaline .mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  .badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+  .badge {
+    font: 600 10px/1 var(--sans); letter-spacing: .05em; text-transform: uppercase;
+    padding: 4px 6px; border-radius: 2px; white-space: nowrap;
+  }
+  .b-clear   { background: var(--clear-bg);   color: var(--clear); }
+  .b-review  { background: var(--review-bg);  color: var(--review); }
+  .b-blocked { background: var(--blocked-bg); color: var(--blocked); }
+  .b-perm    { background: var(--perm-bg);    color: var(--perm); }
+  .b-gold    { background: var(--gold-bg);    color: var(--gold); }
+  .b-plain   { background: var(--surface-2);  color: var(--muted); }
+
+  .note { font-size: 11.5px; color: var(--muted); margin-top: 7px; line-height: 1.45; }
+  .note.prereq { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+
+  /* seats */
+  .cell-seats { font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 12px; }
+  .seatnum { font-size: 16px; font-weight: 600; }
+  .seatnum.zero { color: var(--blocked); }
+  .seatlabel { font-size: 10px; letter-spacing: .07em; text-transform: uppercase; color: var(--faint); font-family: var(--sans); }
+  .meter { height: 4px; background: var(--surface-2); border-radius: 2px; margin: 7px 0 5px; overflow: hidden; }
+  .meter i { display: block; height: 100%; background: var(--accent); }
+  .meter i.full { background: var(--blocked); }
+  .seatsub { font-size: 11px; color: var(--muted); }
+
+  .cell-when { font-size: 12px; color: var(--muted); }
+  .cell-when .d { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--ink); }
+
+  .xbtn {
+    align-self: start; justify-self: end;
+    width: 26px; height: 26px; border-radius: 3px;
+    background: none; border: 1px solid var(--line);
+    color: var(--faint); font: 400 15px/1 var(--sans); cursor: pointer;
+    display: grid; place-items: center;
+  }
+  .xbtn:hover { border-color: var(--blocked); color: var(--blocked); background: var(--blocked-bg); }
+
+  .empty { text-align: center; padding: 56px 20px; color: var(--muted); border: 1px dashed var(--line-2); border-radius: 4px; }
+  .empty p { margin: 0 0 6px; }
+
+  .more { display: block; width: 100%; margin-top: 12px; padding: 12px;
+          font: 500 13px/1 var(--sans); color: var(--accent);
+          background: var(--surface); border: 1px solid var(--line); border-radius: 4px; cursor: pointer; }
+  .more:hover { border-color: var(--accent); }
+
+  /* ---------- caveats ---------- */
+  .caveats { margin-top: 42px; border-top: 1px solid var(--line); padding-top: 20px; }
+  .caveats h2 { font-size: 14px; margin: 0 0 10px; letter-spacing: -.01em; }
+  .caveats ol { margin: 0; padding-left: 20px; color: var(--muted); font-size: 13px; line-height: 1.65; max-width: 74ch; }
+  .caveats li { margin-bottom: 7px; }
+  .caveats code { font-family: var(--mono); font-size: 12px; background: var(--surface-2); padding: 1px 4px; border-radius: 2px; }
+  .stamp { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-top: 18px; }
+
+  /* ---------- schedule blocks ---------- */
+  .blocks-section {
+    margin-bottom: 18px; border: 1px solid var(--line); border-radius: 4px;
+    background: var(--surface); overflow: hidden;
+  }
+  .blocks-section summary {
+    font: 600 13px/1 var(--sans); color: var(--ink); padding: 12px 14px;
+    cursor: pointer; user-select: none; list-style: none; display: flex; align-items: center; gap: 8px;
+  }
+  .blocks-section summary::-webkit-details-marker { display: none; }
+  .blocks-section summary::before {
+    content: "▸"; font-size: 11px; color: var(--faint); transition: transform .15s;
+  }
+  .blocks-section[open] summary::before { transform: rotate(90deg); }
+  .blocks-section summary .count {
+    font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: auto;
+  }
+  .blocks-body { border-top: 1px solid var(--line); padding: 10px 14px 14px; }
+  .blocks-selall { display: flex; align-items: center; gap: 7px; padding: 6px 0 8px;
+    font: 500 12px/1 var(--sans); color: var(--muted); cursor: pointer; }
+  .blocks-selall input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+  .blocks-list { display: flex; flex-direction: column; }
+  .block-row {
+    display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center;
+    padding: 8px 0; border-top: 1px solid var(--line);
+  }
+  .block-row input[type="checkbox"] { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+  .block-info { min-width: 0; }
+  .block-name { font: 600 13px/1 var(--sans); color: var(--ink); }
+  .block-time { font: 400 11.5px/1.3 var(--mono); color: var(--muted); margin-top: 3px; }
+  .block-rm {
+    width: 24px; height: 24px; border-radius: 3px; background: none;
+    border: 1px solid var(--line); color: var(--faint); font: 400 14px/1 var(--sans);
+    cursor: pointer; display: grid; place-items: center;
+  }
+  .block-rm:hover { border-color: var(--blocked); color: var(--blocked); background: var(--blocked-bg); }
+  .add-block-btn {
+    display: block; width: 100%; margin-top: 10px; padding: 10px;
+    font: 600 12px/1 var(--sans); color: var(--accent);
+    background: var(--surface-2); border: 1px dashed var(--line-2); border-radius: 4px;
+    cursor: pointer; text-align: center;
+  }
+  .add-block-btn:hover { border-color: var(--accent); background: var(--surface); }
+  .block-form {
+    margin-top: 10px; padding: 12px; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 4px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .block-form input[type="text"], .block-form input[type="time"] {
+    font: 400 13px/1.3 var(--sans); color: var(--ink);
+    background: var(--surface); border: 1px solid var(--line-2);
+    border-radius: 3px; padding: 8px 10px;
+  }
+  .block-form input[type="time"] { font-family: var(--mono); width: 120px; }
+  .block-form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .block-form-row label { font: 500 12px/1 var(--sans); color: var(--muted); }
+  .block-day-chips { display: flex; gap: 4px; }
+  .block-day-chip {
+    font: 600 11px/1 var(--sans); color: var(--muted);
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 3px; padding: 5px 8px; cursor: pointer; user-select: none;
+  }
+  .block-day-chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .block-form-actions { display: flex; gap: 8px; }
+  .block-save {
+    font: 600 12px/1 var(--sans); color: var(--accent-ink); background: var(--accent);
+    border: 0; border-radius: 3px; padding: 8px 16px; cursor: pointer;
+  }
+  .block-save:hover { opacity: .9; }
+  .block-save:disabled { opacity: .4; cursor: default; }
+  .block-cancel {
+    font: 500 12px/1 var(--sans); color: var(--muted); background: none;
+    border: 1px solid var(--line); border-radius: 3px; padding: 8px 14px; cursor: pointer;
+  }
+  .block-cancel:hover { border-color: var(--line-2); color: var(--ink); }
+  .conflict-note { font: 400 12px/1 var(--sans); color: var(--review); }
+
+  @media (max-width: 760px) {
+    .gridrow { grid-template-columns: minmax(0,1fr) 32px; }
+    .cell-seats, .cell-when { grid-column: 1 / 2; display: flex; gap: 14px; align-items: baseline; }
+    .meter { width: 90px; }
+    .xbtn { grid-row: 1; grid-column: 2; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="kicker">Personal planning tool &middot; not affiliated with UC&nbsp;Berkeley</p>
+      <h1>Fall 2026 Course Triage</h1>
+      <p class="sub">Every non-full undergraduate class, checked against your completed coursework and against who each reserved seat is actually held for.</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" type="button">Theme</button>
+  </header>
+
+  <div class="tiles" id="tiles"></div>
+
+  <details class="blocks-section" id="blocksSection">
+    <summary>Schedule blocks <span class="count" id="blockCount"></span></summary>
+    <div class="blocks-body">
+      <label class="blocks-selall" id="blocksSelAll" hidden>
+        <input type="checkbox" id="blocksSelAllCb" checked> <span id="blocksSelAllLabel">Select All</span>
+      </label>
+      <div class="blocks-list" id="blocksList"></div>
+      <button class="add-block-btn" id="addBlock" type="button">+ Add block</button>
+      <div id="blockFormSlot"></div>
+    </div>
+  </details>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tabList" role="tab" aria-selected="true" type="button">Shortlist <span class="count" id="cList"></span></button>
+    <button class="tab" id="tabTrash" role="tab" aria-selected="false" type="button">Trash <span class="count" id="cTrash"></span></button>
+  </div>
+
+  <div class="controls" id="controls">
+    <div class="searchrow">
+      <div class="search">
+        <input id="q" type="search" placeholder="Search code, title, instructor, department, description&hellip;" autocomplete="off">
+      </div>
+      <div class="dropdown" id="subjectDropdown">
+        <button class="dropdown-toggle" id="subjectToggle" type="button">All subjects <span class="arrow">&#9662;</span></button>
+        <div class="dropdown-panel">
+          <div class="dropdown-head">
+            <input id="subjectSearch" type="text" placeholder="Filter subjects&hellip;" autocomplete="off">
+            <button class="selall" id="subjectSelAll" type="button">None</button>
+          </div>
+          <div class="dropdown-list" id="subjectList"></div>
+        </div>
+      </div>
+      <div class="dropdown" id="breadthDropdown">
+        <button class="dropdown-toggle" id="breadthToggle" type="button">All breadths <span class="arrow">&#9662;</span></button>
+        <div class="dropdown-panel">
+          <div class="dropdown-head">
+            <input id="breadthSearch" type="text" placeholder="Filter breadths&hellip;" autocomplete="off">
+            <button class="selall" id="breadthSelAll" type="button">None</button>
+          </div>
+          <div class="dropdown-list" id="breadthList"></div>
+        </div>
+      </div>
+      <div class="dropdown" id="daysDropdown">
+        <button class="dropdown-toggle" id="daysToggle" type="button">All days <span class="arrow">&#9662;</span></button>
+        <div class="dropdown-panel" style="width:170px">
+          <div class="dropdown-head">
+            <button class="selall" id="daysSelAll" type="button" style="margin-left:auto">None</button>
+          </div>
+          <div class="dropdown-list" id="daysList"></div>
+        </div>
+      </div>
+      <div class="dropdown" id="unitsDropdown">
+        <button class="dropdown-toggle" id="unitsToggle" type="button">All units <span class="arrow">&#9662;</span></button>
+        <div class="dropdown-panel" style="width:170px">
+          <div class="dropdown-head">
+            <button class="selall" id="unitsSelAll" type="button" style="margin-left:auto">None</button>
+          </div>
+          <div class="dropdown-list" id="unitsList"></div>
+        </div>
+      </div>
+      <button class="mini" id="reset" type="button">Reset filters</button>
+    </div>
+
+    <div class="chiprow">
+      <div class="chipgroup" id="gAccess"><span class="glabel">Seats</span></div>
+      <div class="chipgroup" id="gPrereq"><span class="glabel">Prereqs</span></div>
+      <div class="chipgroup" id="gLevel"><span class="glabel">Level</span></div>
+      <div class="chipgroup" id="gMisc"><span class="glabel">Only</span></div>
+    </div>
+  </div>
+
+  <div class="resultline">
+    <span><b id="shown">0</b> of <b id="total">0</b> courses</span>
+    <span class="conflict-note" id="conflictNote" hidden></span>
+    <button class="linkbtn" id="clearAll" type="button" hidden>Empty trash view</button>
+    <button class="linkbtn" id="restoreAll" type="button" hidden>Restore all</button>
+  </div>
+
+  <div class="sorthead" id="sorthead"></div>
+
+  <div class="ledger" id="ledger"></div>
+  <button class="more" id="more" type="button" hidden>Show more</button>
+
+  <section class="caveats">
+    <h2>What this can and can&rsquo;t tell you</h2>
+    <ol id="caveatList"></ol>
+    <p class="stamp" id="stamp"></p>
+  </section>
+</div>
+
+<script>
+const DATA = __DATA__;
+
+/* ---------------- state ---------------- */
+const LS_KEY = 'fall2026-triage-trash-v1';
+const store = {
+  read() {
+    try { return new Set(JSON.parse(localStorage.getItem(LS_KEY) || '[]')); }
+    catch { return new Set(); }
+  },
+  write(set) {
+    try { localStorage.setItem(LS_KEY, JSON.stringify([...set])); } catch { /* storage blocked; session-only */ }
+  }
+};
+
+let trash = store.read();
+let tab = 'list';
+let page = 1;
+const PAGE = 80;
+
+/* --- schedule blocks --- */
+const BLOCKS_KEY = 'fall2026-triage-blocks-v1';
+const blockStore = {
+  read() {
+    try {
+      return (JSON.parse(localStorage.getItem(BLOCKS_KEY) || '[]')).map(b =>
+        ({ ...b, days: new Set(b.days) }));
+    } catch { return []; }
+  },
+  write(arr) {
+    try {
+      localStorage.setItem(BLOCKS_KEY, JSON.stringify(
+        arr.map(b => ({ ...b, days: [...b.days] }))));
+    } catch {}
+  }
+};
+let blocks = blockStore.read();
+
+function overlapsDays(meetDays, blockDays) {
+  if (!meetDays) return false;
+  for (let i = 0; i < meetDays.length; i += 2) {
+    if (blockDays.has(meetDays.slice(i, i + 2))) return true;
+  }
+  return false;
+}
+
+function sectionConflicts(s, activeBlocks) {
+  return s.meetings.some(m => {
+    if (m.startMinutes == null || m.endMinutes == null) return false;
+    return activeBlocks.some(b =>
+      overlapsDays(m.days, b.days) &&
+      m.startMinutes < b.endMin && m.endMinutes > b.startMin
+    );
+  });
+}
+
+const DAY_ABB = ['Mo', 'Tu', 'We', 'Th', 'Fr'];
+const DAY_FULL = { Mo: 'M', Tu: 'Tu', We: 'W', Th: 'Th', Fr: 'F' };
+function fmtBlockTime(b) {
+  const ds = DAY_ABB.filter(d => b.days.has(d)).map(d => DAY_FULL[d]).join('');
+  const fmt = m => { const h = Math.floor(m / 60), mm = m % 60; const ap = h >= 12 ? 'pm' : 'am';
+    return `${h % 12 || 12}:${String(mm).padStart(2, '0')}${ap}`; };
+  return `${ds} ${fmt(b.startMin)}–${fmt(b.endMin)}`;
+}
+
+const ACCESS_LABEL = {
+  open:            'Open to anyone',
+  reserved_for_me: 'Held for you',
+  permission:      'Permission only',
+  uncertain:       'Eligibility unclear',
+  blocked:         'Held for other majors'
+};
+const PREREQ_LABEL = {
+  NONE:    'No prereqs',
+  MET:     'Prereqs met',
+  REVIEW:  'Needs review',
+  NOT_MET: 'Prereqs unmet'
+};
+
+const filters = {
+  q: '',
+  subject: new Set(),
+  breadth: new Set(),
+  day: new Set(),
+  units: new Set(),
+  access: new Set(['open', 'reserved_for_me']),
+  prereq: new Set(['NONE', 'MET']),
+  level: new Set(),
+  misc: new Set()
+};
+let sortKey = 'code', sortDir = 1;
+
+/* ---------------- helpers ---------------- */
+const rows = DATA.rows;
+const byKey = new Map(rows.map(r => [r.key, r]));
+
+/* group rows into courses — one entry per unique course code */
+function buildCourses() {
+  const m = new Map();
+  for (const r of rows) {
+    if (!m.has(r.code)) m.set(r.code, []);
+    m.get(r.code).push(r);
+  }
+  return [...m.entries()].map(([code, secs]) => {
+    const rep = secs[0];
+    return {
+      code,
+      subject: rep.subject,
+      courseNumber: rep.courseNumber,
+      title: rep.title,
+      description: rep.description,
+      level: rep.level,
+      units: rep.units,
+      unitsMin: rep.unitsMin,
+      component: rep.component,
+      gradingBasis: rep.gradingBasis,
+      department: rep.department,
+      breadth: rep.breadth,
+      universityReqs: rep.universityReqs,
+      avgGrade: rep.avgGrade,
+      prereqVerdict: rep.prereqVerdict,
+      prereqSource: rep.prereqSource,
+      prereqText: rep.prereqText,
+      url: rep.url,
+      online: secs.some(r => r.online),
+      sections: secs,
+      /* aggregates */
+      openSeats: secs.reduce((s, r) => s + r.openSeats, 0),
+      enrolled: secs.reduce((s, r) => s + r.enrolled, 0),
+      capacity: secs.reduce((s, r) => s + r.capacity, 0),
+      waitlisted: secs.reduce((s, r) => s + r.waitlisted, 0),
+      waitlistMax: secs.reduce((s, r) => s + r.waitlistMax, 0),
+      instructors: [...new Set(secs.flatMap(r => r.instructors))],
+      access: bestAccess(secs),
+      accessNote: bestAccessNote(secs),
+      earliestStart: secs.reduce(
+        (min, r) => r.earliestStart != null && r.earliestStart < min ? r.earliestStart : min, Infinity),
+    };
+  });
+}
+
+const ACCESS_RANK = { open: 0, reserved_for_me: 1, uncertain: 2, permission: 3, blocked: 4 };
+function bestAccess(secs) {
+  let best = 'blocked';
+  for (const r of secs) if (ACCESS_RANK[r.access] < ACCESS_RANK[best]) best = r.access;
+  return best;
+}
+function bestAccessNote(secs) {
+  const ba = bestAccess(secs);
+  const sec = secs.find(r => r.access === ba);
+  return sec ? sec.accessNote : '';
+}
+
+const courses = buildCourses();
+/* make Infinity → null after aggregation */
+for (const c of courses) if (!Number.isFinite(c.earliestStart)) c.earliestStart = null;
+
+const UNIT_BUCKETS = ['1', '2', '3', '4', '5+'];
+function unitBucket(u) {
+  if (u == null || u <= 1) return '1';
+  if (u <= 2) return '2';
+  if (u <= 3) return '3';
+  if (u <= 4) return '4';
+  return '5+';
+}
+
+const LANG_SUBJECTS = new Set([
+  'ARABIC','ARMENI','BANGLA','BOSCRSR','BURMESE','CATALAN','CHINESE','CUNEIF',
+  'DANISH','DUTCH','FILIPN','FINNISH','FRENCH','GERMAN','GREEK','HEBREW',
+  'HINDI','HUNGARI','INDONES','ITALIAN','JAPAN','KOREAN','LATIN','MDGRK',
+  'MONGOLN','NORWEGN','PERSIAN','POLISH','PORTUG','PUNJABI','RUSSIAN',
+  'SANSKR','SLAVIC','SPANISH','SWEDISH','TAMIL','TELUGU','THAI','TIBETAN',
+  'TURKISH','UKRAINI','URDU','VIETNMS','YIDDISH',
+]);
+
+function severity(r) {
+  if (r.access === 'blocked' || r.prereqVerdict === 'NOT_MET') return 'blocked';
+  if (r.access === 'permission') return 'perm';
+  if (r.access === 'uncertain' || r.prereqVerdict === 'REVIEW') return 'review';
+  return 'clear';
+}
+const isCleared = r =>
+  (r.access === 'open' || r.access === 'reserved_for_me') &&
+  (r.prereqVerdict === 'NONE' || r.prereqVerdict === 'MET');
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c =>
+  ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+
+function haystack(r) {
+  if (r._h) return r._h;
+  r._h = [r.code, r.title, r.subject, r.department, r.instructors.join(' '), r.description, r.prereqText,
+           ...(r.sections || []).flatMap(s => s.instructors)]
+    .join(' ').toLowerCase();
+  return r._h;
+}
+
+const SORTS = [
+  { k: 'code',      label: 'Code',        get: r => r.code + r.section },
+  { k: 'title',     label: 'Title',       get: r => r.title.toLowerCase() },
+  { k: 'openSeats', label: 'Open seats',  get: r => r.openSeats, num: true, desc: true },
+  { k: 'fill',      label: 'Fullness',    get: r => r.capacity ? r.enrolled / r.capacity : 0, num: true },
+  { k: 'capacity',  label: 'Capacity',    get: r => r.capacity, num: true, desc: true },
+  { k: 'waitlisted',label: 'Waitlist',    get: r => r.waitlisted, num: true },
+  { k: 'units',     label: 'Units',       get: r => r.units ?? 0, num: true, desc: true },
+  { k: 'level',     label: 'Level',       get: r => r.level || '' },
+  { k: 'avgGrade',  label: 'Avg grade',   get: r => r.avgGrade ?? -1, num: true, desc: true },
+  { k: 'earliestStart', label: 'Start time', get: r => r.earliestStart ?? 1e9, num: true },
+  { k: 'subject',   label: 'Subject',     get: r => r.subject }
+];
+
+let lastConflictCount = 0;
+
+function apply() {
+  const q = filters.q.trim().toLowerCase();
+  const terms = q ? q.split(/\s+/) : [];
+  const inTrash = tab === 'trash';
+  const activeBlocks = blocks.filter(b => b.enabled);
+  let conflictCount = 0;
+
+  let out = courses.filter(c => {
+    const allTrashed = c.sections.every(s => trash.has(s.key));
+    if (allTrashed !== inTrash) return false;
+    if (filters.access.size && !filters.access.has(c.access)) return false;
+    if (filters.prereq.size && !filters.prereq.has(c.prereqVerdict)) return false;
+    if (filters.level.size && !filters.level.has(c.level)) return false;
+    if (filters.subject.size && !filters.subject.has(c.subject)) return false;
+    if (filters.units.size && !filters.units.has(unitBucket(c.units))) return false;
+    if (filters.breadth.size && !(c.breadth || []).some(b => filters.breadth.has(b))) return false;
+    if (filters.day.size && !c.sections.some(s => s.meetings.some(m => {
+      const d = m.days || '';
+      for (const fd of filters.day) if (d.includes(fd)) return true;
+      return false;
+    }))) return false;
+    if (filters.misc.has('online') && !c.online) return false;
+    if (filters.misc.has('nowait') && c.waitlisted > 0) return false;
+    if (filters.misc.has('graded') && !/letter/i.test(c.gradingBasis || '')) return false;
+    if (filters.misc.has('breadth') && !(c.breadth || []).length) return false;
+    if (filters.misc.has('lang') && !LANG_SUBJECTS.has(c.subject)) return false;
+    if (activeBlocks.length && c.sections.every(s => sectionConflicts(s, activeBlocks))) {
+      conflictCount++;
+      return false;
+    }
+    if (terms.length) {
+      const h = haystack(c);
+      if (!terms.every(t => h.includes(t))) return false;
+    }
+    return true;
+  });
+  lastConflictCount = conflictCount;
+
+  const s = SORTS.find(x => x.k === sortKey) || SORTS[0];
+  out.sort((a, b) => {
+    const av = s.get(a), bv = s.get(b);
+    let c2 = s.num ? av - bv : String(av).localeCompare(String(bv), undefined, { numeric: true });
+    return c2 * sortDir;
+  });
+  return out;
+}
+
+/* ---------------- render ---------------- */
+const SEC_COLLAPSE = 3; /* show first N sections; the rest behind "show more" */
+
+function sectionHTML(s) {
+  const pct = s.capacity ? Math.min(100, Math.round(s.enrolled / s.capacity * 100)) : 0;
+  const when = s.meetings.length
+    ? s.meetings.map(m => `<div><span class="d">${esc(m.days || '—')}</span> ${esc(m.time)}</div>`).join('')
+      + (s.meetings[0].location ? `<div style="margin-top:3px">${esc(s.meetings[0].location)}</div>` : '')
+    : '<div>No meeting pattern</div>';
+
+  const meta = [
+    s.component ? `<span>${esc(s.component)}</span>` : '',
+    s.instructors.length ? `<span>${esc(s.instructors.join(', '))}</span>` : ''
+  ].filter(Boolean).join('');
+
+  const sbadges = [];
+  if (s.access === 'reserved_for_me') sbadges.push(`<span class="badge b-gold">Held for you</span>`);
+  else if (s.access === 'permission') sbadges.push(`<span class="badge b-perm">Permission</span>`);
+  else if (s.access === 'uncertain') sbadges.push(`<span class="badge b-review">Eligibility unclear</span>`);
+  else if (s.access === 'blocked') sbadges.push(`<span class="badge b-blocked">Other majors</span>`);
+  if (s.online) sbadges.push(`<span class="badge b-plain">Online</span>`);
+
+  return `<div class="gridrow srow" data-key="${esc(s.key)}">
+    <div class="cell-main">
+      <span class="secid">${esc(s.section)}</span>
+      ${meta ? `<div class="metaline">${meta}</div>` : ''}
+      ${sbadges.length ? `<div class="badges">${sbadges.join('')}</div>` : ''}
+      ${s.accessNote && s.access !== 'open' ? `<p class="note">${esc(s.accessNote)}</p>` : ''}
+    </div>
+    <div class="cell-seats">
+      <div><span class="seatnum ${s.openSeats ? '' : 'zero'}">${s.openSeats}</span> <span class="seatlabel">open</span></div>
+      <div class="meter"><i class="${pct >= 100 ? 'full' : ''}" style="width:${pct}%"></i></div>
+      <div class="seatsub">${s.enrolled}/${s.capacity} enrolled${s.waitlisted ? ` &middot; ${s.waitlisted} wait` : ''}</div>
+    </div>
+    <div class="cell-when">${when}</div>
+    <div></div>
+  </div>`;
+}
+
+function courseHTML(c) {
+  const sev = severity(c);
+  const pct = c.capacity ? Math.min(100, Math.round(c.enrolled / c.capacity * 100)) : 0;
+  const multi = c.sections.length > 1;
+
+  const badges = [];
+  if (c.access === 'reserved_for_me') badges.push(`<span class="badge b-gold">Held for you</span>`);
+  else if (c.access === 'open') badges.push(`<span class="badge b-clear">Open</span>`);
+  else if (c.access === 'permission') badges.push(`<span class="badge b-perm">Permission only</span>`);
+  else if (c.access === 'uncertain') badges.push(`<span class="badge b-review">Eligibility unclear</span>`);
+  else badges.push(`<span class="badge b-blocked">Other majors</span>`);
+
+  const pv = c.prereqVerdict;
+  const pcls = pv === 'MET' || pv === 'NONE' ? 'b-clear' : pv === 'REVIEW' ? 'b-review' : 'b-blocked';
+  badges.push(`<span class="badge ${pcls}">${esc(PREREQ_LABEL[pv])}</span>`);
+  if (c.online) badges.push(`<span class="badge b-plain">Online</span>`);
+  (c.breadth || []).forEach(b => badges.push(`<span class="badge b-plain">${esc(b)}</span>`));
+
+  const meta = [
+    c.units != null ? `<span class="mono">${esc(c.units)} units</span>` : '',
+    c.level ? `<span>${esc(c.level)}</span>` : '',
+    !multi && c.component ? `<span>${esc(c.component)}</span>` : '',
+    !multi && c.instructors.length ? `<span>${esc(c.instructors.join(', '))}</span>` : '',
+    c.avgGrade != null ? `<span class="mono">avg ${c.avgGrade.toFixed(2)}</span>` : '',
+    multi ? `<span class="nsec">${c.sections.length} sections</span>` : ''
+  ].filter(Boolean).join('');
+
+  const notes = [];
+  if (!multi && c.access !== 'open') notes.push(`<p class="note">${esc(c.accessNote)}</p>`);
+  if (c.prereqText) notes.push(`<p class="note prereq">Prereq: ${esc(c.prereqText)}</p>`);
+
+  /* for single-section courses: meeting time in the header */
+  let headerWhen = '';
+  if (!multi) {
+    const s0 = c.sections[0];
+    headerWhen = s0.meetings.length
+      ? s0.meetings.map(m => `<div><span class="d">${esc(m.days || '—')}</span> ${esc(m.time)}</div>`).join('')
+        + (s0.meetings[0].location ? `<div style="margin-top:3px">${esc(s0.meetings[0].location)}</div>` : '')
+      : '<div>No meeting pattern</div>';
+  }
+
+  /* sections area (multi-section courses) */
+  let sectionsBlock = '';
+  if (multi) {
+    const visible = c.sections.slice(0, SEC_COLLAPSE);
+    const rest = c.sections.length - SEC_COLLAPSE;
+    sectionsBlock = `<div class="sections">${
+      visible.map(sectionHTML).join('')}${
+      rest > 0 ? `<button class="moresec" type="button" data-course="${esc(c.code)}">Show ${rest} more section${rest > 1 ? 's' : ''}</button>` : ''
+    }</div>`;
+  }
+
+  return `<article class="course s-${sev}" data-code="${esc(c.code)}">
+    <div class="gridrow">
+      <div class="cell-main">
+        <div class="codeline">
+          <span class="code"><a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.code)}</a></span>
+          ${!multi ? `<span class="sec">§${esc(c.sections[0].section)}</span>` : ''}
+        </div>
+        <div class="title">${esc(c.title)}</div>
+        <div class="metaline">${meta}</div>
+        <div class="badges">${badges.join('')}</div>
+        ${notes.join('')}
+      </div>
+      <div class="cell-seats">
+        <div><span class="seatnum ${c.openSeats ? '' : 'zero'}">${c.openSeats}</span> <span class="seatlabel">open</span></div>
+        <div class="meter"><i class="${pct >= 100 ? 'full' : ''}" style="width:${pct}%"></i></div>
+        <div class="seatsub">${c.enrolled}/${c.capacity} enrolled${c.waitlisted ? ` &middot; ${c.waitlisted} wait` : ''}</div>
+      </div>
+      <div class="cell-when">${multi ? '' : headerWhen}</div>
+      <button class="xbtn" type="button" data-act="${tab === 'trash' ? 'restore' : 'trash'}"
+              title="${tab === 'trash' ? 'Restore to shortlist' : 'Move to trash'}"
+              aria-label="${tab === 'trash' ? 'Restore ' : 'Dismiss '}${esc(c.code)}">${tab === 'trash' ? '&#8630;' : '&times;'}</button>
+    </div>
+    ${sectionsBlock}
+  </article>`;
+}
+
+function render() {
+  const list = apply();
+  const slice = list.slice(0, page * PAGE);
+  const ledger = document.getElementById('ledger');
+
+  ledger.innerHTML = slice.length
+    ? slice.map(courseHTML).join('')
+    : `<div class="empty"><p>${tab === 'trash' ? 'Nothing in the trash.' : 'No courses match these filters.'}</p>
+       <p style="font-size:13px">${tab === 'trash' ? 'Dismissed courses land here and can be restored.' : 'Try widening the Seats or Prereqs filters.'}</p></div>`;
+
+  const trashedCourses = courses.filter(c => c.sections.every(s => trash.has(s.key))).length;
+  document.getElementById('shown').textContent = slice.length;
+  document.getElementById('total').textContent = list.length;
+  document.getElementById('more').hidden = slice.length >= list.length;
+  document.getElementById('restoreAll').hidden = !(tab === 'trash' && list.length);
+  document.getElementById('cList').textContent = courses.length - trashedCourses;
+  document.getElementById('cTrash').textContent = trashedCourses;
+  const cn = document.getElementById('conflictNote');
+  if (lastConflictCount > 0) {
+    cn.textContent = `${lastConflictCount} hidden by schedule conflicts`;
+    cn.hidden = false;
+  } else { cn.hidden = true; }
+}
+
+function renderTiles() {
+  const live = courses.filter(c => !c.sections.every(s => trash.has(s.key)));
+  const t = [
+    { n: live.length, l: 'Courses', cls: '' },
+    { n: live.filter(isCleared).length, l: 'Cleared for you', cls: 'is-clear' },
+    { n: live.filter(c => c.access === 'reserved_for_me').length, l: 'Seats held for you', cls: 'is-gold' },
+    { n: live.filter(c => c.prereqVerdict === 'REVIEW' || c.access === 'uncertain').length, l: 'Needs review', cls: 'is-review' },
+    { n: live.filter(c => c.access === 'blocked').length, l: 'Other majors only', cls: 'is-blocked' },
+    { n: live.filter(c => c.prereqVerdict === 'NOT_MET').length, l: 'Prereqs unmet', cls: 'is-blocked' }
+  ];
+  document.getElementById('tiles').innerHTML = t.map(x =>
+    `<div class="tile ${x.cls}"><div class="n">${x.n}</div><div class="l">${x.l}</div></div>`).join('');
+}
+
+function chip(label, active, count) {
+  return `<button class="chip" type="button" aria-pressed="${active}" data-v="${esc(label.v)}">${esc(label.t)}${
+    count != null ? `<span class="c">${count}</span>` : ''}</button>`;
+}
+
+function buildControls() {
+  const count = fn => courses.filter(fn).length;
+
+  document.getElementById('gAccess').insertAdjacentHTML('beforeend',
+    Object.keys(ACCESS_LABEL).map(k =>
+      chip({ v: k, t: ACCESS_LABEL[k] }, filters.access.has(k), count(c => c.access === k))).join(''));
+
+  document.getElementById('gPrereq').insertAdjacentHTML('beforeend',
+    Object.keys(PREREQ_LABEL).map(k =>
+      chip({ v: k, t: PREREQ_LABEL[k] }, filters.prereq.has(k), count(c => c.prereqVerdict === k))).join(''));
+
+  const levels = [...new Set(courses.map(c => c.level).filter(Boolean))].sort();
+  document.getElementById('gLevel').insertAdjacentHTML('beforeend',
+    levels.map(k => chip({ v: k, t: k }, false, count(c => c.level === k))).join(''));
+
+  document.getElementById('gMisc').insertAdjacentHTML('beforeend',
+    [['online', 'Online'], ['nowait', 'No waitlist'], ['graded', 'Letter graded'], ['breadth', 'Fills a breadth'], ['lang', 'Language']]
+      .map(([v, t]) => chip({ v, t }, false)).join(''));
+
+  /* subject multi-select dropdown */
+  const allSubjects = [...new Set(courses.map(c => c.subject))].sort();
+  const subjectCounts = new Map();
+  for (const s of allSubjects) subjectCounts.set(s, courses.filter(c => c.subject === s).length);
+  document.getElementById('subjectList').innerHTML = allSubjects.map(s =>
+    `<label data-subj="${esc(s)}"><input type="checkbox" value="${esc(s)}" checked> ${esc(s)} <span style="color:var(--faint);font-family:var(--mono);font-size:10px;margin-left:auto">${subjectCounts.get(s)}</span></label>`
+  ).join('');
+  refreshSubjectToggle();
+
+  /* breadth multi-select dropdown */
+  const allBreadths = [...new Set(courses.flatMap(c => c.breadth || []))].sort();
+  const breadthCounts = new Map();
+  for (const b of allBreadths) breadthCounts.set(b, courses.filter(c => (c.breadth || []).includes(b)).length);
+  document.getElementById('breadthList').innerHTML = allBreadths.map(b =>
+    `<label data-subj="${esc(b)}"><input type="checkbox" value="${esc(b)}" checked> ${esc(b)} <span style="color:var(--faint);font-family:var(--mono);font-size:10px;margin-left:auto">${breadthCounts.get(b)}</span></label>`
+  ).join('');
+  refreshBreadthToggle();
+
+  /* days multi-select dropdown */
+  const allDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+  const dayLabels = { Mo: 'Monday', Tu: 'Tuesday', We: 'Wednesday', Th: 'Thursday', Fr: 'Friday', Sa: 'Saturday', Su: 'Sunday' };
+  const dayCounts = new Map();
+  for (const d of allDays) dayCounts.set(d, courses.filter(c => c.sections.some(s => s.meetings.some(m => (m.days || '').includes(d)))).length);
+  document.getElementById('daysList').innerHTML = allDays.map(d =>
+    `<label data-subj="${esc(d)}"><input type="checkbox" value="${esc(d)}" checked> ${esc(dayLabels[d])} <span style="color:var(--faint);font-family:var(--mono);font-size:10px;margin-left:auto">${dayCounts.get(d)}</span></label>`
+  ).join('');
+  refreshDaysToggle();
+
+  /* units multi-select dropdown */
+  const unitLabels = { '1': '1 unit', '2': '2 units', '3': '3 units', '4': '4 units', '5+': '5+ units' };
+  const unitCounts = new Map();
+  for (const u of UNIT_BUCKETS) unitCounts.set(u, courses.filter(c => unitBucket(c.units) === u).length);
+  document.getElementById('unitsList').innerHTML = UNIT_BUCKETS.map(u =>
+    `<label data-subj="${esc(u)}"><input type="checkbox" value="${esc(u)}" checked> ${esc(unitLabels[u])} <span style="color:var(--faint);font-family:var(--mono);font-size:10px;margin-left:auto">${unitCounts.get(u)}</span></label>`
+  ).join('');
+  refreshUnitsToggle();
+
+  document.getElementById('sorthead').innerHTML =
+    `<span class="glabel" style="font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-right:4px">Sort</span>` +
+    SORTS.map(s => `<button class="sortbtn" type="button" data-k="${s.k}" aria-pressed="${s.k === sortKey}">${esc(s.label)}<span class="dir">${
+      s.k === sortKey ? (sortDir === 1 ? '&uarr;' : '&darr;') : ''}</span></button>`).join('');
+}
+
+function refreshSortHead() {
+  document.querySelectorAll('.sortbtn').forEach(b => {
+    const on = b.dataset.k === sortKey;
+    b.setAttribute('aria-pressed', on);
+    b.querySelector('.dir').innerHTML = on ? (sortDir === 1 ? '&uarr;' : '&darr;') : '';
+  });
+}
+
+/* ---------------- events ---------------- */
+document.getElementById('q').addEventListener('input', e => { filters.q = e.target.value; page = 1; render(); });
+
+/* --- generic multi-select dropdown wiring --- */
+const allSubjects = [...new Set(courses.map(c => c.subject))].sort();
+const allBreadths = [...new Set(courses.flatMap(c => c.breadth || []))].sort();
+const allDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
+
+function refreshSubjectToggle() {
+  const btn = document.getElementById('subjectToggle');
+  const n = filters.subject.size;
+  if (n === 0) btn.innerHTML = 'All subjects <span class="arrow">&#9662;</span>';
+  else btn.innerHTML = `${n} subject${n > 1 ? 's' : ''} <span class="dcount">${n}/${allSubjects.length}</span> <span class="arrow">&#9662;</span>`;
+  document.getElementById('subjectSelAll').textContent = n === 0 ? 'None' : 'All';
+}
+function refreshBreadthToggle() {
+  const btn = document.getElementById('breadthToggle');
+  const n = filters.breadth.size;
+  if (n === 0) btn.innerHTML = 'All breadths <span class="arrow">&#9662;</span>';
+  else btn.innerHTML = `${n} breadth${n > 1 ? 's' : ''} <span class="dcount">${n}/${allBreadths.length}</span> <span class="arrow">&#9662;</span>`;
+  document.getElementById('breadthSelAll').textContent = n === 0 ? 'None' : 'All';
+}
+function refreshDaysToggle() {
+  const btn = document.getElementById('daysToggle');
+  const n = filters.day.size;
+  if (n === 0) btn.innerHTML = 'All days <span class="arrow">&#9662;</span>';
+  else btn.innerHTML = `${n} day${n > 1 ? 's' : ''} <span class="dcount">${n}/${allDays.length}</span> <span class="arrow">&#9662;</span>`;
+  document.getElementById('daysSelAll').textContent = n === 0 ? 'None' : 'All';
+}
+function refreshUnitsToggle() {
+  const btn = document.getElementById('unitsToggle');
+  const n = filters.units.size;
+  if (n === 0) btn.innerHTML = 'All units <span class="arrow">&#9662;</span>';
+  else btn.innerHTML = `${n} unit group${n > 1 ? 's' : ''} <span class="dcount">${n}/${UNIT_BUCKETS.length}</span> <span class="arrow">&#9662;</span>`;
+  document.getElementById('unitsSelAll').textContent = n === 0 ? 'None' : 'All';
+}
+
+function wireDropdown({ ddId, listId, selAllId, searchId, filterKey, allItems, refreshFn }) {
+  document.getElementById(ddId.replace('Dropdown', 'Toggle')).addEventListener('click', () => {
+    document.getElementById(ddId).classList.toggle('open');
+  });
+
+  document.getElementById(listId).addEventListener('change', e => {
+    const cb = e.target;
+    if (cb.type !== 'checkbox') return;
+    const checked = new Set();
+    document.querySelectorAll(`#${listId} input[type="checkbox"]`).forEach(x => {
+      if (x.checked) checked.add(x.value);
+    });
+    filters[filterKey] = checked.size === allItems.length ? new Set() : checked;
+    refreshFn(); page = 1; render();
+  });
+
+  document.getElementById(selAllId).addEventListener('click', () => {
+    const isAll = filters[filterKey].size === 0;
+    if (isAll) {
+      filters[filterKey] = new Set(['__none__']);
+      document.querySelectorAll(`#${listId} input[type="checkbox"]`).forEach(cb => { cb.checked = false; });
+    } else {
+      filters[filterKey] = new Set();
+      document.querySelectorAll(`#${listId} input[type="checkbox"]`).forEach(cb => { cb.checked = true; });
+    }
+    refreshFn(); page = 1; render();
+  });
+
+  if (searchId) {
+    document.getElementById(searchId).addEventListener('input', e => {
+      const q = e.target.value.toLowerCase();
+      document.querySelectorAll(`#${listId} label`).forEach(l => {
+        l.style.display = l.dataset.subj.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  }
+}
+
+wireDropdown({ ddId: 'subjectDropdown', listId: 'subjectList', selAllId: 'subjectSelAll', searchId: 'subjectSearch', filterKey: 'subject', allItems: allSubjects, refreshFn: refreshSubjectToggle });
+wireDropdown({ ddId: 'breadthDropdown', listId: 'breadthList', selAllId: 'breadthSelAll', searchId: 'breadthSearch', filterKey: 'breadth', allItems: allBreadths, refreshFn: refreshBreadthToggle });
+wireDropdown({ ddId: 'daysDropdown', listId: 'daysList', selAllId: 'daysSelAll', searchId: null, filterKey: 'day', allItems: allDays, refreshFn: refreshDaysToggle });
+wireDropdown({ ddId: 'unitsDropdown', listId: 'unitsList', selAllId: 'unitsSelAll', searchId: null, filterKey: 'units', allItems: UNIT_BUCKETS, refreshFn: refreshUnitsToggle });
+
+/* close any open dropdown when clicking outside */
+document.addEventListener('click', e => {
+  document.querySelectorAll('.dropdown.open').forEach(dd => {
+    if (!dd.contains(e.target)) dd.classList.remove('open');
+  });
+});
+
+document.querySelectorAll('.chipgroup').forEach(g => {
+  g.addEventListener('click', e => {
+    const b = e.target.closest('.chip'); if (!b) return;
+    const set = { gAccess: filters.access, gPrereq: filters.prereq, gLevel: filters.level, gMisc: filters.misc }[g.id];
+    const v = b.dataset.v;
+    if (set.has(v)) set.delete(v); else set.add(v);
+    b.setAttribute('aria-pressed', set.has(v));
+    page = 1; render();
+  });
+});
+
+document.getElementById('sorthead').addEventListener('click', e => {
+  const b = e.target.closest('.sortbtn'); if (!b) return;
+  const k = b.dataset.k;
+  if (k === sortKey) sortDir = -sortDir;
+  else { sortKey = k; sortDir = (SORTS.find(s => s.k === k) || {}).desc ? -1 : 1; }
+  refreshSortHead(); page = 1; render();
+});
+
+document.getElementById('ledger').addEventListener('click', e => {
+  /* X/restore button — operates on the whole course */
+  const xb = e.target.closest('.xbtn');
+  if (xb) {
+    const code = xb.closest('.course').dataset.code;
+    const c = courses.find(x => x.code === code);
+    if (c) {
+      if (xb.dataset.act === 'restore') c.sections.forEach(s => trash.delete(s.key));
+      else c.sections.forEach(s => trash.add(s.key));
+      store.write(trash);
+      renderTiles(); render();
+    }
+    return;
+  }
+  /* "show more sections" button */
+  const mb = e.target.closest('.moresec');
+  if (mb) {
+    const code = mb.dataset.course;
+    const c = courses.find(x => x.code === code);
+    if (c) {
+      const container = mb.closest('.sections');
+      const existing = container.querySelectorAll('.srow').length;
+      const rest = c.sections.slice(existing);
+      mb.insertAdjacentHTML('beforebegin', rest.map(sectionHTML).join(''));
+      mb.remove();
+    }
+  }
+});
+
+document.getElementById('more').addEventListener('click', () => { page++; render(); });
+
+document.getElementById('restoreAll').addEventListener('click', () => {
+  apply().forEach(c => c.sections.forEach(s => trash.delete(s.key)));
+  store.write(trash); renderTiles(); render();
+});
+
+function setTab(t) {
+  tab = t; page = 1;
+  document.getElementById('tabList').setAttribute('aria-selected', t === 'list');
+  document.getElementById('tabTrash').setAttribute('aria-selected', t === 'trash');
+  render();
+}
+document.getElementById('tabList').addEventListener('click', () => setTab('list'));
+document.getElementById('tabTrash').addEventListener('click', () => setTab('trash'));
+
+document.getElementById('reset').addEventListener('click', () => {
+  filters.q = ''; document.getElementById('q').value = '';
+  filters.subject = new Set(); filters.breadth = new Set(); filters.day = new Set(); filters.units = new Set();
+  ['subjectList', 'breadthList', 'daysList', 'unitsList'].forEach(id => {
+    document.querySelectorAll(`#${id} input[type="checkbox"]`).forEach(cb => { cb.checked = true; });
+  });
+  ['subjectSearch', 'breadthSearch'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; }
+  });
+  document.querySelectorAll('#subjectList label, #breadthList label').forEach(l => { l.style.display = ''; });
+  refreshSubjectToggle(); refreshBreadthToggle(); refreshDaysToggle(); refreshUnitsToggle();
+  filters.access = new Set(['open', 'reserved_for_me']);
+  filters.prereq = new Set(['NONE', 'MET']);
+  filters.level = new Set(); filters.misc = new Set();
+  document.querySelectorAll('#gAccess .chip').forEach(b => b.setAttribute('aria-pressed', filters.access.has(b.dataset.v)));
+  document.querySelectorAll('#gPrereq .chip').forEach(b => b.setAttribute('aria-pressed', filters.prereq.has(b.dataset.v)));
+  document.querySelectorAll('#gLevel .chip, #gMisc .chip').forEach(b => b.setAttribute('aria-pressed', false));
+  page = 1; render();
+});
+
+document.getElementById('themeBtn').addEventListener('click', () => {
+  const cur = document.documentElement.getAttribute('data-theme');
+  const next = cur === 'dark' ? 'light' : cur === 'light' ? null : 'dark';
+  if (next) document.documentElement.setAttribute('data-theme', next);
+  else document.documentElement.removeAttribute('data-theme');
+});
+
+/* ---------------- schedule blocks UI ---------------- */
+function renderBlocks() {
+  const list = document.getElementById('blocksList');
+  const selAllWrap = document.getElementById('blocksSelAll');
+  const selAllCb = document.getElementById('blocksSelAllCb');
+  const countEl = document.getElementById('blockCount');
+
+  countEl.textContent = blocks.length ? `${blocks.filter(b => b.enabled).length}/${blocks.length} active` : '';
+  selAllWrap.hidden = blocks.length === 0;
+
+  if (blocks.length) {
+    const allOn = blocks.every(b => b.enabled);
+    selAllCb.checked = allOn;
+    selAllCb.indeterminate = !allOn && blocks.some(b => b.enabled);
+    document.getElementById('blocksSelAllLabel').textContent = allOn ? 'Deselect All' : 'Select All';
+  }
+
+  list.innerHTML = blocks.map(b => `<div class="block-row" data-id="${b.id}">
+    <input type="checkbox" ${b.enabled ? 'checked' : ''} data-action="toggle" aria-label="Toggle ${esc(b.name)}">
+    <div class="block-info">
+      <div class="block-name">${esc(b.name)}</div>
+      <div class="block-time">${esc(fmtBlockTime(b))}</div>
+    </div>
+    <button class="block-rm" type="button" data-action="remove" aria-label="Remove ${esc(b.name)}">&times;</button>
+  </div>`).join('');
+}
+
+function showBlockForm() {
+  const slot = document.getElementById('blockFormSlot');
+  slot.innerHTML = `<div class="block-form" id="blockForm">
+    <input type="text" id="bfName" placeholder="e.g. CS 170 lecture" autocomplete="off">
+    <div class="block-form-row">
+      <label>Days</label>
+      <div class="block-day-chips" id="bfDays">
+        ${DAY_ABB.map(d => `<button class="block-day-chip" type="button" data-d="${d}" aria-pressed="false">${d}</button>`).join('')}
+      </div>
+    </div>
+    <div class="block-form-row">
+      <label>From</label> <input type="time" id="bfStart" value="09:00">
+      <label>To</label>   <input type="time" id="bfEnd" value="10:00">
+    </div>
+    <div class="block-form-actions">
+      <button class="block-save" id="bfSave" type="button">Save</button>
+      <button class="block-cancel" id="bfCancel" type="button">Cancel</button>
+    </div>
+  </div>`;
+  document.getElementById('addBlock').hidden = true;
+  document.getElementById('bfName').focus();
+}
+
+function hideBlockForm() {
+  document.getElementById('blockFormSlot').innerHTML = '';
+  document.getElementById('addBlock').hidden = false;
+}
+
+function timeToMin(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+document.getElementById('addBlock').addEventListener('click', showBlockForm);
+
+document.getElementById('blockFormSlot').addEventListener('click', e => {
+  const chip = e.target.closest('.block-day-chip');
+  if (chip) {
+    const on = chip.getAttribute('aria-pressed') === 'true';
+    chip.setAttribute('aria-pressed', !on);
+    return;
+  }
+  if (e.target.id === 'bfSave') {
+    const name = document.getElementById('bfName').value.trim() || 'Untitled';
+    const days = new Set();
+    document.querySelectorAll('#bfDays .block-day-chip[aria-pressed="true"]').forEach(c => days.add(c.dataset.d));
+    if (days.size === 0) return;
+    const startMin = timeToMin(document.getElementById('bfStart').value);
+    const endMin = timeToMin(document.getElementById('bfEnd').value);
+    if (endMin <= startMin) return;
+    blocks.push({ id: String(Date.now()), name, days, startMin, endMin, enabled: true });
+    blockStore.write(blocks);
+    hideBlockForm();
+    renderBlocks(); render();
+    return;
+  }
+  if (e.target.id === 'bfCancel') { hideBlockForm(); return; }
+});
+
+document.getElementById('blocksList').addEventListener('click', e => {
+  const row = e.target.closest('.block-row');
+  if (!row) return;
+  const id = row.dataset.id;
+  if (e.target.dataset.action === 'remove') {
+    blocks = blocks.filter(b => b.id !== id);
+    blockStore.write(blocks);
+    renderBlocks(); render();
+    return;
+  }
+  if (e.target.dataset.action === 'toggle') {
+    const b = blocks.find(b => b.id === id);
+    if (b) { b.enabled = e.target.checked; blockStore.write(blocks); renderBlocks(); render(); }
+  }
+});
+
+document.getElementById('blocksSelAllCb').addEventListener('change', e => {
+  const on = e.target.checked;
+  blocks.forEach(b => { b.enabled = on; });
+  blockStore.write(blocks);
+  renderBlocks(); render();
+});
+
+/* ---------------- caveats + stamp ---------------- */
+document.getElementById('caveatList').innerHTML = [
+  'Grades are not checked. Your course list has no grades, so a prerequisite demanding &ldquo;C- or better&rdquo; is treated as met.',
+  'Lower-division calculus is credited by equivalency (<code>MATH 51</code>, <code>MATH 52</code>, and the earlier <code>1A</code>/<code>1B</code> numbering) on your say-so rather than from a transcript. Requirements resting on it &mdash; including prose like &ldquo;one year of calculus&rdquo; &mdash; are counted as satisfied.',
+  'Other AP, transfer, and concurrent-enrollment credit is invisible here, so some <code>Prereqs unmet</code> verdicts may be wrong in your favor.',
+  'Prerequisites come from the catalog&rsquo;s structured rules where they exist, and from parsed prose where they don&rsquo;t. Anything the parser could not resolve is marked <code>Needs review</code> rather than guessed &mdash; the raw text is shown on every row.',
+  '&ldquo;Terms in attendance&rdquo; reservations that hinge on whether Fall 2026 itself counts as your 5th term are reported as <code>Eligibility unclear</code>, not resolved.',
+  'Some classes carry an enrollment restriction beyond seat reservations that this data source does not expose. Every course code links to its official class page &mdash; check there before enrolling.',
+  'Seat counts are a snapshot, not a live feed. The Adjustment Period opens Aug 17, 2026, so these numbers will move.',
+  'Courses you have already completed are excluded, including under their cross-listings.'
+].map(t => `<li>${t}</li>`).join('');
+
+const m = DATA.meta;
+document.getElementById('stamp').textContent =
+  `Fetched ${new Date(m.fetchedAt).toLocaleString()} · ${m.openTotal} open classes in Fall 2026, ` +
+  `${m.undergradOpenTotal} undergraduate · ${courses.length} courses (${rows.length} sections) · ` +
+  `${m.skippedAlreadyCompleted} already-completed dropped · ` +
+  `profile: ${m.profile.major} ${m.profile.degree}, ${m.profile.college}`;
+
+/* ---------------- go ---------------- */
+buildControls();
+renderBlocks();
+renderTiles();
+render();
+</script>
