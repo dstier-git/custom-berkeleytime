@@ -9,17 +9,7 @@ interface SortHeaderProps {
 export default function SortHeader({ sortKey, sortDir, setSort }: SortHeaderProps) {
   return (
     <div className="sorthead">
-      <span
-        className="glabel"
-        style={{
-          fontFamily: 'var(--mono)',
-          fontSize: '10px',
-          letterSpacing: '.1em',
-          textTransform: 'uppercase',
-          color: 'var(--faint)',
-          marginRight: '4px',
-        }}
-      >
+      <span className="glabel" style={{ marginRight: 4 }}>
         Sort
       </span>
       {SORTS.map(s => {

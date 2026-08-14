@@ -112,8 +112,9 @@ export default function DropdownMultiSelect({
                 {item.label}
                 <span style={{
                   color: 'var(--faint)',
-                  fontFamily: 'var(--mono)',
+                  fontFamily: 'var(--sans)',
                   fontSize: '10px',
+                  fontVariantNumeric: 'tabular-nums',
                   marginLeft: 'auto',
                 }}>
                   {item.count}

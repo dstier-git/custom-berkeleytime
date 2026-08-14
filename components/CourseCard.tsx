@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import type { Course } from '@/lib/types'
-import { severity, PREREQ_LABEL } from '@/lib/utils'
+import { PREREQ_LABEL } from '@/lib/utils'
 import SectionRow from './SectionRow'
 
 const SEC_COLLAPSE = 3
@@ -15,7 +15,6 @@ interface CourseCardProps {
 
 export default function CourseCard({ course: c, tab, onAction }: CourseCardProps) {
   const [expanded, setExpanded] = useState(false)
-  const sev = severity(c)
   const pct = c.capacity ? Math.min(100, Math.round(c.enrolled / c.capacity * 100)) : 0
   const multi = c.sections.length > 1
 
@@ -46,7 +45,7 @@ export default function CourseCard({ course: c, tab, onAction }: CourseCardProps
   const restCount = c.sections.length - SEC_COLLAPSE
 
   return (
-    <article className={`course s-${sev}`} data-code={c.code}>
+    <article className="course" data-code={c.code}>
       <div className="gridrow">
         <div className="cell-main">
           <div className="codeline">
