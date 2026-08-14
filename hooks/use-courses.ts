@@ -33,14 +33,6 @@ export function useCourses(
   const filtersTouched = useRef(false)
   const appliedHasProfile = useRef(false)
 
-  useEffect(() => {
-    const hasProfile = !!profile
-    if (filtersTouched.current || appliedHasProfile.current === hasProfile) return
-    appliedHasProfile.current = hasProfile
-    setFiltersState(createDefaultFilters(hasProfile))
-    setPage(1)
-  }, [profile])
-
   const [trashArr, setTrashArr] = useLocalStorage<string[]>('fall2026-triage-trash-v1', [])
   const trash = useMemo(() => new Set(trashArr), [trashArr])
 
@@ -53,6 +45,17 @@ export function useCourses(
     () => (evalInputs ? buildEvalContext(evalInputs) : null),
     [evalInputs],
   )
+
+  // Filters that assume the profile has been applied must wait for evalInputs,
+  // otherwise the default NONE/MET chips hide every REVIEW row during the fetch.
+  const profileReady = !!(profile && evalContext)
+
+  useEffect(() => {
+    if (filtersTouched.current || appliedHasProfile.current === profileReady) return
+    appliedHasProfile.current = profileReady
+    setFiltersState(createDefaultFilters(profileReady))
+    setPage(1)
+  }, [profileReady])
 
   const { rows, skippedAlreadyCompleted } = useMemo(() => {
     if (!data) return { rows: [], skippedAlreadyCompleted: 0 }
@@ -153,9 +156,9 @@ export function useCourses(
 
   const resetFilters = useCallback(() => {
     filtersTouched.current = false
-    setFiltersState(createDefaultFilters(!!profile))
+    setFiltersState(createDefaultFilters(profileReady))
     setPage(1)
-  }, [profile])
+  }, [profileReady])
 
   const setSort = useCallback((key: string) => {
     if (key === sortKey) {

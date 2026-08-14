@@ -110,6 +110,46 @@ body {
 }
 .theme-btn:hover { border-color: var(--line-2); color: var(--ink); }
 
+/* ---------- profile upload ---------- */
+.profile-card {
+  margin-bottom: 22px; border: 1px solid var(--line); border-radius: 4px;
+  background: var(--surface); padding: 14px 14px 16px;
+}
+.profile-head { display: flex; align-items: baseline; gap: 12px; }
+.profile-head h2 { font-size: 13px; font-weight: 600; margin: 0; letter-spacing: -.01em; }
+.profile-head .linkbtn { margin-left: auto; }
+.profile-status { margin: 8px 0 0; font-size: 14px; color: var(--ink); }
+.profile-status.none { color: var(--muted); }
+.profile-error { margin: 8px 0 0; font-size: 13px; color: var(--blocked); }
+.profile-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.profile-form {
+  margin-top: 12px; padding: 12px; background: var(--surface-2);
+  border: 1px solid var(--line); border-radius: 4px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.profile-form-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: flex-end; }
+.profile-form-row label {
+  display: flex; flex-direction: column; gap: 5px;
+  font: 500 12px/1 var(--sans); color: var(--muted);
+}
+.profile-form-row input[type="text"], .profile-form-row select {
+  font: 400 13px/1.3 var(--sans); color: var(--ink);
+  background: var(--surface); border: 1px solid var(--line-2);
+  border-radius: 3px; padding: 8px 10px; min-width: 0;
+}
+.profile-form-row > label:not(.profile-check):first-of-type { flex: 1 1 180px; }
+.profile-form-row label.profile-check {
+  flex-direction: row; align-items: center; gap: 7px;
+  cursor: pointer; color: var(--ink); font-weight: 500;
+}
+.profile-check input { width: 15px; height: 15px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.profile-form-actions { display: flex; gap: 8px; }
+.profile-courses { font-size: 13px; color: var(--muted); }
+.profile-courses summary { cursor: pointer; font-weight: 500; color: var(--ink); }
+.profile-courses ul { margin: 8px 0 0; padding-left: 18px; }
+.profile-courses li { margin-bottom: 4px; }
+.profile-courses b { color: var(--ink); font-weight: 600; }
+
 /* ---------- stat tiles ---------- */
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)); gap: 1px;
          background: var(--line); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; margin-bottom: 22px; }

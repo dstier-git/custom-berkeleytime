@@ -3,15 +3,21 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "copy-pdf-worker": "node scripts/copy-pdf-worker.mjs",
+    "dev": "node scripts/copy-pdf-worker.mjs && next dev",
+    "build": "node scripts/copy-pdf-worker.mjs && next build",
     "start": "next start",
     "lint": "next lint",
     "data": "node scripts/build-neutral-dataset.mjs && node scripts/build-eval-inputs.mjs",
-    "verify:eval": "node scripts/verify-client-eval.mjs"
+    "verify:eval": "node scripts/verify-client-eval.mjs",
+    "verify:pdf": "node scripts/verify-pdf-parse.mjs",
+    "vercel": "vercel",
+    "deploy": "vercel",
+    "deploy:prod": "vercel --prod"
   },
   "dependencies": {
     "next": "^15.3.0",
+    "pdfjs-dist": "^6.2.108",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
@@ -19,6 +25,7 @@
     "@types/node": "^22.0.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "vercel": "^59.0.0"
   }
 }
