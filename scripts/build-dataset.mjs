@@ -7,6 +7,7 @@
 
 import { readFile, writeFile } from 'node:fs/promises'
 import { classKey } from './bt-client.mjs'
+import { classFacts } from './class-fields.mjs'
 import { classifyAccess, ACCESS } from './reservations.mjs'
 import {
   VERDICT,
@@ -24,51 +25,6 @@ import {
 } from './profile.mjs'
 
 const read = async (p) => JSON.parse(await readFile(new URL(p, import.meta.url), 'utf8'))
-
-const DAY_NAMES = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
-
-function formatMeetings(meetings) {
-  return (meetings ?? [])
-    .map((m) => {
-      const days = (m.days ?? []).map((on, i) => (on ? DAY_NAMES[i] : null)).filter(Boolean).join('')
-      const t = m.startTime && m.endTime ? `${hhmm(m.startTime)}–${hhmm(m.endTime)}` : ''
-      return {
-        days,
-        time: t,
-        startMinutes: m.startTime ? toMinutes(m.startTime) : null,
-        endMinutes: m.endTime ? toMinutes(m.endTime) : null,
-        location: m.location ?? '',
-        instructors: (m.instructors ?? [])
-          .map((i) => [i.givenName, i.familyName].filter(Boolean).join(' '))
-          .filter(Boolean),
-      }
-    })
-    .filter((m) => m.days || m.time || m.instructors.length)
-}
-
-const toMinutes = (t) => {
-  const [h, m] = t.split(':').map(Number)
-  return h * 60 + m
-}
-const hhmm = (t) => {
-  const [h, m] = t.split(':').map(Number)
-  const ampm = h >= 12 ? 'pm' : 'am'
-  const hr = h % 12 === 0 ? 12 : h % 12
-  return `${hr}:${String(m).padStart(2, '0')}${ampm}`
-}
-
-/** classes.berkeley.edu detail slug, for verifying a class against the source. */
-function sourceUrl(c) {
-  const seg = [
-    `${c.year}-fall`,
-    c.subject.toLowerCase().replace(/[^a-z0-9]/g, ''),
-    String(c.courseNumber).toLowerCase(),
-    String(c.number).toLowerCase(),
-    String(c.primaryComponent ?? 'lec').toLowerCase(),
-    String(c.number).toLowerCase(),
-  ]
-  return `https://classes.berkeley.edu/content/${seg.join('-')}`
-}
 
 async function main() {
   const raw = await read('../data/fall2026-raw.json')
@@ -105,7 +61,7 @@ async function main() {
     }
 
     const key = classKey(c)
-    const access = classifyAccess(nonReserved.has(key), reservations[key])
+    const access = classifyAccess(nonReserved.has(key), reservations[key], PROFILE)
 
     const bt = btByCode.get(code)
     const prereq = evaluate({
@@ -119,49 +75,16 @@ async function main() {
       ownSubject: c.subject,
     })
 
-    const meetings = formatMeetings(c.meetings)
-    const instructors = [...new Set(meetings.flatMap((m) => m.instructors))]
-
     rows.push({
-      key,
-      code: `${c.subject} ${c.courseNumber}`,
-      subject: c.subject,
-      courseNumber: c.courseNumber,
-      section: c.number,
-      title: c.courseTitle ?? c.title ?? '',
-      description: (c.courseDescription ?? c.description ?? '').slice(0, 600),
-      level: c.level,
-      units: c.unitsMax ?? c.unitsMin ?? null,
-      unitsMin: c.unitsMin ?? null,
-      component: c.primaryComponent,
-      online: !!c.primaryOnline,
-      gradingBasis: c.gradingBasis ?? '',
-      department: c.academicOrganizationName ?? '',
-      breadth: c.breadthRequirements ?? [],
-      universityReqs: c.universityRequirements ?? [],
-      avgGrade: c.allTimeAverageGrade ?? null,
-      enrolled: c.enrolledCount ?? 0,
-      capacity: c.maxEnroll ?? 0,
-      openSeats: c.openSeats ?? 0,
-      waitlisted: c.waitlistedCount ?? 0,
-      waitlistMax: c.maxWaitlist ?? 0,
-      instructors,
-      meetings,
-      earliestStart: meetings.reduce(
-        (min, m) => (m.startMinutes != null && m.startMinutes < min ? m.startMinutes : min),
-        Infinity,
-      ),
+      ...classFacts(c, key),
       access: access.access,
       accessNote: access.note,
       reservationGroups: access.groups,
       prereqVerdict: prereq.verdict,
       prereqSource: prereq.source,
       prereqText: prereq.text,
-      url: sourceUrl(c),
     })
   }
-
-  for (const r of rows) if (!Number.isFinite(r.earliestStart)) r.earliestStart = null
 
   // ---- summary -------------------------------------------------------------
   const tally = (fn) =>

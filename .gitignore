@@ -1,7 +1,12 @@
 node_modules/
+.next/
 .env.local
 .env
 *.log
 .DS_Store
 .claude/
 scripts/profile.mjs
+
+# The profiled dataset embeds a real student profile — the site serves the
+# neutral one and evaluates in the browser instead.
+public/data/fall2026-triage.json

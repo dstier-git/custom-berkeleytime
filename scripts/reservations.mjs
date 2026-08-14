@@ -7,9 +7,12 @@
  *
  * Patterns below were written against the 169 distinct requirementGroup
  * descriptions actually present in Fall 2026, not invented in advance.
+ *
+ * The profile is threaded through as a parameter rather than imported, so the
+ * same code runs in the browser against a profile the visitor uploaded. A null
+ * profile means "nothing is known about the student" and grades every group as
+ * unknown.
  */
-
-import { PROFILE } from './profile.mjs'
 
 export const ACCESS = {
   OPEN: 'open', // unreserved seats available to anyone
@@ -22,8 +25,8 @@ export const ACCESS = {
 const seatsLeft = (r) => Math.max(0, (r.maxEnroll ?? 0) - (r.enrolledCount ?? 0))
 
 /** Does a "terms in attendance" clause cover this student? */
-function termsVerdict(desc) {
-  const { termsCompleted, termsIncludingTarget } = PROFILE
+function termsVerdict(desc, profile) {
+  const { termsCompleted, termsIncludingTarget } = profile
   const lo = termsCompleted
   const hi = termsIncludingTarget
 
@@ -52,12 +55,17 @@ function termsVerdict(desc) {
  * Verdict for a single reservation group: true = I qualify, false = I don't,
  * null = can't tell from the profile.
  */
-export function groupVerdict(desc) {
+export function groupVerdict(desc, profile) {
   const d = desc.replace(/\s+/g, ' ').trim()
+
+  // With no profile there is no cohort to test a group against, so every group
+  // is unknown — except an instructor-permission gate, which says nothing about
+  // the student at all.
+  if (!profile) return /enrollment permission/i.test(d) ? 'permission' : null
 
   // Cohort gates that exclude a continuing, declared, non-transfer student.
   if (/new transfer|new transfers|transfers? (?:in|admits)|admitted as transfers|all new and continuing transfer/i.test(d)) {
-    return PROFILE.isTransfer ? null : false
+    return profile.isTransfer ? null : false
   }
   if (/new first year|new undergraduate freshman|first year in .* major/i.test(d)) return false
   if (/graduate students|master of|masters students|\bMFA\b|Public Health: Graduate/i.test(d)) return false
@@ -66,7 +74,7 @@ export function groupVerdict(desc) {
   // Instructor permission is not a program restriction — surfaced separately.
   if (/enrollment permission/i.test(d)) return 'permission'
 
-  const terms = termsVerdict(d)
+  const terms = termsVerdict(d, profile)
 
   // Open to all undergraduates.
   if (/^all undergraduate students/i.test(d) || /^undergraduate students\s*-\s*excludes visiting/i.test(d)) {
@@ -95,7 +103,7 @@ export function groupVerdict(desc) {
   // CDSS / L&S wording is ambiguous for a Data Science BA, which moved from
   // L&S to CDSS — flag rather than assume either way.
   if (/college of letters & scien|letters & science undeclared|undeclared students/i.test(d)) {
-    return /undeclared/i.test(d) && PROFILE.isDeclared ? false : null
+    return /undeclared/i.test(d) && profile.isDeclared ? false : null
   }
   if (/computing, data science/i.test(d)) return terms === false ? false : true
 
@@ -104,26 +112,51 @@ export function groupVerdict(desc) {
 }
 
 /**
- * Classify one class.
+ * Reduce a class's raw enrollment record to the profile-independent facts that
+ * decide access: whether unreserved seats exist, and which reservation buckets
+ * still have room. Small and JSON-serializable, so it can be shipped to the
+ * browser and re-graded there against an uploaded profile.
+ *
  * @param {boolean} hasUnreservedSeats  true if the class appears in NON_RESERVED_OPEN
  * @param {object|null} latest          Enrollment.latest, when reservations had to be fetched
+ * @returns {{state: 'open'|'unknown'|'full'|'live', groups: Array}}
  */
-export function classifyAccess(hasUnreservedSeats, latest) {
-  if (hasUnreservedSeats) {
-    return { access: ACCESS.OPEN, groups: [], note: 'Open seats available with no reservation' }
-  }
+export function reservationInputs(hasUnreservedSeats, latest) {
+  if (hasUnreservedSeats) return { state: 'open', groups: [] }
 
   const rows = latest?.seatReservationCount ?? []
   const live = rows.filter((r) => r.isValid !== false && seatsLeft(r) > 0)
 
-  if (rows.length === 0) {
+  if (rows.length === 0) return { state: 'unknown', groups: [] }
+  if (live.length === 0) return { state: 'full', groups: [] }
+
+  return {
+    state: 'live',
+    groups: live.map((r) => ({
+      description: r.requirementGroup.description,
+      code: r.requirementGroup.code,
+      seatsLeft: seatsLeft(r),
+    })),
+  }
+}
+
+/**
+ * Grade reservation inputs against a profile. A null profile leaves every group
+ * unknown, which surfaces as UNCERTAIN — the honest answer before a student
+ * says who they are.
+ */
+export function classifyFromInputs(inputs, profile) {
+  if (inputs.state === 'open') {
+    return { access: ACCESS.OPEN, groups: [], note: 'Open seats available with no reservation' }
+  }
+  if (inputs.state === 'unknown') {
     return {
       access: ACCESS.UNCERTAIN,
       groups: [],
       note: 'All open seats are reserved, but the reservation breakdown was unavailable',
     }
   }
-  if (live.length === 0) {
+  if (inputs.state === 'full') {
     return {
       access: ACCESS.BLOCKED,
       groups: [],
@@ -131,11 +164,9 @@ export function classifyAccess(hasUnreservedSeats, latest) {
     }
   }
 
-  const graded = live.map((r) => ({
-    description: r.requirementGroup.description,
-    code: r.requirementGroup.code,
-    seatsLeft: seatsLeft(r),
-    verdict: groupVerdict(r.requirementGroup.description),
+  const graded = inputs.groups.map((g) => ({
+    ...g,
+    verdict: groupVerdict(g.description, profile),
   }))
 
   if (graded.some((g) => g.verdict === true)) {
@@ -172,4 +203,9 @@ export function classifyAccess(hasUnreservedSeats, latest) {
       .map((g) => g.description)
       .join('; ')}`,
   }
+}
+
+/** Classify one class straight from its raw enrollment record. */
+export function classifyAccess(hasUnreservedSeats, latest, profile) {
+  return classifyFromInputs(reservationInputs(hasUnreservedSeats, latest), profile)
 }
