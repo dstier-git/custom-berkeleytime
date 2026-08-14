@@ -6,6 +6,7 @@ import type { EvalInputs } from '@/lib/eval-core.mjs'
 import { useCourses } from '@/hooks/use-courses'
 import { useProfile } from '@/hooks/use-profile'
 import Masthead from './Masthead'
+import ProfileUpload from './ProfileUpload'
 import StatTiles from './StatTiles'
 import ScheduleBlocks from './ScheduleBlocks'
 import Tabs from './Tabs'
@@ -21,7 +22,7 @@ export default function TriagePage() {
   const [evalInputs, setEvalInputs] = useState<EvalInputs | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const { profile } = useProfile()
+  const { profile, setProfile, clearProfile } = useProfile()
 
   useEffect(() => {
     fetch('/data/fall2026-neutral.json')
@@ -101,7 +102,13 @@ export default function TriagePage() {
   return (
     <div className="wrap">
       <Masthead hasProfile={!!profile} />
-      <StatTiles stats={stats} hasProfile={!!profile} />
+      <ProfileUpload
+        profile={profile}
+        setProfile={setProfile}
+        clearProfile={clearProfile}
+        evaluating={!!profile && !evalInputs}
+      />
+      <StatTiles stats={stats} hasProfile={!!profile && !!evalInputs} />
       <ScheduleBlocks
         blocks={blocks}
         addBlock={addBlock}

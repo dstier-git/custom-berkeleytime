@@ -8,57 +8,16 @@
  */
 
 import { execSync } from 'node:child_process'
-import { readFile, writeFile, access } from 'node:fs/promises'
-
-const SEASON_ORDER = { spring: 0, summer: 1, fall: 2 }
-const SEASON_LABEL = { spring: 'Spring', summer: 'Summer', fall: 'Fall' }
-
-function semKey(season, year) {
-  return `${season}-${year}`
-}
-
-function semSort(a, b) {
-  const [sa, ya] = a.split('-')
-  const [sb, yb] = b.split('-')
-  return (+ya - +yb) || (SEASON_ORDER[sa] - SEASON_ORDER[sb])
-}
-
-function semLabel(key) {
-  const [season, year] = key.split('-')
-  return `${SEASON_LABEL[season]} ${year}`
-}
-
-function parseClassSlug(slug) {
-  const i = slug.lastIndexOf('-')
-  if (i <= 0) return null
-  const subjectRaw = slug.slice(0, i)
-  const number = slug.slice(i + 1).toUpperCase()
-  const subject = subjectRaw.replace(/-/g, ' ').toUpperCase()
-  return `${subject} ${number}`
-}
+import { writeFile, access } from 'node:fs/promises'
+import {
+  extractCoursesFromText,
+  semLabel,
+  semSort,
+} from '../lib/parse-calcentral-core.mjs'
 
 function extractCourses(pdfPath) {
   const raw = execSync(`strings "${pdfPath}"`, { encoding: 'utf8', maxBuffer: 50 * 1024 * 1024 })
-
-  const re = /\/semester\/(fall|spring|summer)-(\d{4})\/class\/(.+)-\d{4}-[A-Z]\)/g
-  const semesters = new Map()
-  const seen = new Set()
-
-  for (const m of raw.matchAll(re)) {
-    const [, season, year, slug] = m
-    const code = parseClassSlug(slug)
-    if (!code) continue
-
-    const key = semKey(season, year)
-    const dedup = `${key}:${code}`
-    if (seen.has(dedup)) continue
-    seen.add(dedup)
-
-    if (!semesters.has(key)) semesters.set(key, [])
-    semesters.get(key).push(code)
-  }
-
-  return semesters
+  return extractCoursesFromText(raw)
 }
 
 function generateProfile(semesters, targetKey) {
