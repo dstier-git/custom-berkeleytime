@@ -122,6 +122,9 @@ body {
 .profile-status.none { color: var(--muted); }
 .profile-error { margin: 8px 0 0; font-size: 13px; color: var(--blocked); }
 .profile-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
+.profile-privacy {
+  margin: 10px 0 0; font-size: 12px; color: var(--muted); line-height: 1.45; white-space: nowrap;
+}
 .profile-form {
   margin-top: 12px; padding: 12px; background: var(--surface-2);
   border: 1px solid var(--line); border-radius: 4px;

@@ -289,6 +289,11 @@ export default function ProfileUpload({
           )}
         </div>
       )}
+      {!showForm && (
+        <p className="profile-privacy">
+          Parsing runs in your browser. The file and any personal information stay on this device (nothing is uploaded).
+        </p>
+      )}
     </section>
   )
 }
