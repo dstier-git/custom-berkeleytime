@@ -2,7 +2,10 @@
  * The student this run is filtering for. Everything that depends on "who am I"
  * lives here so it can be corrected in one place.
  *
- * Copy this file to profile.mjs and fill in your own data.
+ * Option A: Auto-generate from your CalCentral Academic Summary PDF:
+ *   node scripts/parse-calcentral.mjs "Academic Summary _ CalCentral.pdf"
+ *
+ * Option B: Copy this file to profile.mjs and fill in your own data.
  */
 
 /** Courses completed, as they appear on your transcript. */
