@@ -284,7 +284,9 @@ select, .mini {
   border: 1px solid var(--line);
   border-radius: 6px;
   background: var(--surface);
-  overflow: hidden;
+  /* clip, not hidden: same corner clipping, but clip is not a scroll container,
+     so .ledger-head can stick to the viewport rather than to this box. */
+  overflow: clip;
 }
 
 .ledger-head,
@@ -294,6 +296,11 @@ select, .mini {
 }
 
 .ledger-head {
+  /* pinned under the sticky .controls bar; --controls-h is measured in ControlsBar.
+     z-index clears the drag ghost (6) and lifted cells (8) so rows pass underneath. */
+  position: sticky;
+  top: var(--controls-h, 0px);
+  z-index: 12;
   gap: 10px 6px;
   padding: 8px 12px;
   background: var(--surface-2);
@@ -352,9 +359,15 @@ select, .mini {
 .ledger .h-action, .ledger .xbtn, .ledger .cell-action {
   transform: translate3d(var(--shift-action, 0px), 0, 0);
 }
-.ledger .h-seats, .ledger .h-course, .ledger .h-avg, .ledger .h-when, .ledger .h-action,
-.ledger .cell-seats, .ledger .cell-main, .ledger .cell-avg, .ledger .cell-when,
-.ledger .row-detail, .ledger .xbtn, .ledger .cell-action {
+/* Only while a drag session is live: at commit the grid placement jumps to the real
+   column and the --shift-* vars are cleared in the same style recalc, so a live
+   transform transition would replay the move from the stale offset. */
+.ledger[data-dragging] .h-seats, .ledger[data-dragging] .h-course,
+.ledger[data-dragging] .h-avg, .ledger[data-dragging] .h-when,
+.ledger[data-dragging] .h-action, .ledger[data-dragging] .cell-seats,
+.ledger[data-dragging] .cell-main, .ledger[data-dragging] .cell-avg,
+.ledger[data-dragging] .cell-when, .ledger[data-dragging] .row-detail,
+.ledger[data-dragging] .xbtn, .ledger[data-dragging] .cell-action {
   transition: transform var(--col-ease);
 }
 
@@ -631,6 +644,9 @@ body:has(.ledger[data-dragging]) { cursor: grabbing; }
   .gridrow {
     grid-template-columns: 52px minmax(0, 1fr) 36px 24px;
   }
+  /* reordering is off at this width, and the head is now always on screen —
+     let a finger on it scroll the page. */
+  .ledger-head { touch-action: auto; }
   .ledger-head [data-col] { cursor: default; }
   .ledger-head .col-grip { display: none; }
   .ledger-head .h-seats { grid-column: 1; }

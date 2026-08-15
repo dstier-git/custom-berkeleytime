@@ -1,4 +1,6 @@
-import { useMemo } from 'react'
+'use client'
+
+import { useEffect, useMemo, useRef } from 'react'
 import type { Course, FilterState } from '@/lib/types'
 import { ACCESS_LABEL, PREREQ_LABEL, UNIT_BUCKETS, unitBucket } from '@/lib/utils'
 import DropdownMultiSelect from './DropdownMultiSelect'
@@ -33,6 +35,28 @@ const ALL_DAYS = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
 export default function ControlsBar({
   filters, setFilter, toggleChip, resetFilters, courses,
 }: ControlsBarProps) {
+  const barRef = useRef<HTMLDivElement>(null)
+
+  // The ledger head sticks directly below this bar, and the bar's height changes
+  // as the chip rows wrap, so publish it for CSS to read.
+  useEffect(() => {
+    const el = barRef.current
+    if (!el) return
+    const write = () => {
+      document.documentElement.style.setProperty(
+        '--controls-h',
+        `${el.getBoundingClientRect().height}px`,
+      )
+    }
+    write()
+    const ro = new ResizeObserver(write)
+    ro.observe(el)
+    return () => {
+      ro.disconnect()
+      document.documentElement.style.removeProperty('--controls-h')
+    }
+  }, [])
+
   const subjectItems = useMemo(() => {
     const counts = new Map<string, number>()
     for (const c of courses) counts.set(c.subject, (counts.get(c.subject) || 0) + 1)
@@ -100,7 +124,7 @@ export default function ControlsBar({
   }, [courses])
 
   return (
-    <div className="controls">
+    <div className="controls" ref={barRef}>
       <div className="searchrow">
         <div className="search">
           <input
