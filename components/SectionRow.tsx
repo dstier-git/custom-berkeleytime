@@ -40,7 +40,7 @@ export default function SectionRow({ section: s }: { section: TriageRow }) {
           <div>{s.online ? 'Online' : 'No meeting pattern'}</div>
         )}
       </div>
-      <div />
+      <div className="cell-action" />
       {detail && <div className="row-detail">{detail}</div>}
     </div>
   )
