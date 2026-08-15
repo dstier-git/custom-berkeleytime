@@ -15,6 +15,116 @@ export const PREREQ_LABEL: Record<string, string> = {
   NOT_MET: 'Prereqs unmet',
 }
 
+const UNCERTAIN_PREFIX = "Remaining seats depend on eligibility I can't confirm: "
+
+export function formatUnits(units: number | null, unitsMin?: number | null): string | null {
+  if (units == null) return null
+  if (unitsMin != null && unitsMin !== units) return `${unitsMin}–${units} units`
+  return units === 1 ? '1 unit' : `${units} units`
+}
+
+export function gpaToLetter(gpa: number): string {
+  if (gpa >= 3.85) return 'A'
+  if (gpa >= 3.50) return 'A-'
+  if (gpa >= 3.15) return 'B+'
+  if (gpa >= 2.85) return 'B'
+  if (gpa >= 2.50) return 'B-'
+  if (gpa >= 2.15) return 'C+'
+  if (gpa >= 1.85) return 'C'
+  if (gpa >= 1.50) return 'C-'
+  if (gpa >= 1.15) return 'D+'
+  if (gpa >= 0.85) return 'D'
+  if (gpa >= 0.50) return 'D-'
+  return 'F'
+}
+
+export function gradeBand(letter: string): 'a' | 'b' | 'c' | 'df' {
+  const ch = letter[0]
+  if (ch === 'A') return 'a'
+  if (ch === 'B') return 'b'
+  if (ch === 'C') return 'c'
+  return 'df'
+}
+
+export function lastName(full: string): string {
+  const parts = full.trim().split(/\s+/)
+  return parts[parts.length - 1] || full
+}
+
+export function instructorShort(instructors: string[]): string {
+  return [...new Set(instructors.map(lastName).filter(Boolean))].join(', ')
+}
+
+export function prereqBadgeText(verdict: string, prereqText: string): string {
+  if (verdict === 'NONE' || verdict === 'MET') return PREREQ_LABEL[verdict]
+  const codes: string[] = []
+  const seen = new Set<string>()
+  const re = /\b([A-Za-z]{2,12})\s+(\d{1,3}[A-Za-z]{0,2})\b/g
+  for (const m of (prereqText ?? '').matchAll(re)) {
+    const code = `${m[1].toUpperCase()} ${m[2].toUpperCase()}`
+    if (!seen.has(code)) {
+      seen.add(code)
+      codes.push(code)
+    }
+  }
+  if (codes.length === 1) return `req. ${codes[0]}`
+  if (codes.length === 2) return `req. ${codes[0]}, ${codes[1]}`
+  if (codes.length > 2) return `req. ${codes[0]}+`
+  return PREREQ_LABEL[verdict] ?? 'Needs review'
+}
+
+export function prereqBadgeClass(verdict: string): string {
+  if (verdict === 'MET' || verdict === 'NONE') return 'pill-gold'
+  if (verdict === 'NOT_MET') return 'pill-blocked'
+  return 'pill-quiet'
+}
+
+export function seatLabel(
+  openSeats: number,
+  enrolled: number,
+  capacity: number,
+  waitlisted: number,
+): { text: string; wait: boolean } {
+  if (openSeats <= 0 && waitlisted > 0) {
+    return { text: `${waitlisted} wait`, wait: true }
+  }
+  if (capacity > 0) return { text: `${enrolled}/${capacity}`, wait: false }
+  return { text: String(openSeats), wait: false }
+}
+
+export function compactEligibility(access: string, note: string): string | null {
+  if (access === 'open') return null
+  if (access === 'uncertain') {
+    if (note.startsWith(UNCERTAIN_PREFIX)) {
+      return `eligibility unconfirmed (${note.slice(UNCERTAIN_PREFIX.length)})`
+    }
+    return 'eligibility unconfirmed'
+  }
+  return ACCESS_LABEL[access] ?? note ?? null
+}
+
+export function rowDetailParts(opts: {
+  instructors: string[]
+  openSeats: number
+  enrolled: number
+  capacity: number
+  waitlisted: number
+  access: string
+  accessNote: string
+  extra?: string[]
+}): string {
+  const parts: string[] = []
+  const inst = instructorShort(opts.instructors)
+  if (inst) parts.push(inst)
+  const waitOnly = opts.openSeats <= 0 && opts.waitlisted > 0
+  if (waitOnly && opts.capacity) parts.push(`${opts.enrolled}/${opts.capacity} enrolled`)
+  else if (opts.waitlisted > 0) parts.push(`${opts.waitlisted} wait`)
+  const elig = compactEligibility(opts.access, opts.accessNote)
+  if (elig) parts.push(elig)
+  if (opts.extra) parts.push(...opts.extra.filter(Boolean))
+  return parts.join(' · ')
+}
+
 export const ACCESS_RANK: Record<string, number> = {
   open: 0,
   reserved_for_me: 1,

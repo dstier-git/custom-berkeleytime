@@ -24,6 +24,13 @@ export default function CourseLedger({ courses, tab, trashCourse, restoreCourse 
 
   return (
     <div className="ledger">
+      <div className="ledger-head">
+        <span>Seats</span>
+        <span>Course</span>
+        <span className="h-avg">Avg</span>
+        <span className="h-when">When</span>
+        <span />
+      </div>
       {courses.map(c => (
         <CourseCard
           key={c.code}
