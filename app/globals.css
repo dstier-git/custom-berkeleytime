@@ -470,5 +470,6 @@ select, .mini {
   .cell-seats, .cell-when { grid-column: 1 / 2; display: flex; gap: 14px; align-items: baseline; }
   .meter { width: 90px; }
   .xbtn { grid-row: 1; grid-column: 2; }
+  .controls { position: static; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
