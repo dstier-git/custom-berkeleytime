@@ -123,7 +123,7 @@ body {
 .profile-error { margin: 8px 0 0; font-size: 13px; color: var(--blocked); }
 .profile-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 12px; }
 .profile-privacy {
-  margin: 10px 0 0; font-size: 12px; color: var(--muted); line-height: 1.45; white-space: nowrap;
+  margin: 10px 0 0; font-size: 12px; color: var(--muted); line-height: 1.45;
 }
 .profile-form {
   margin-top: 12px; padding: 12px; background: var(--surface-2);
@@ -638,6 +638,13 @@ body:has(.ledger[data-dragging]) { cursor: grabbing; }
 
 /* ---------- loading ---------- */
 .loading { text-align: center; padding: 120px 20px; color: var(--muted); font-size: 14px; }
+
+/* Filters shouldn't eat viewport space on a phone. Unpinning them also means the
+   ledger head has nothing to sit below, so it pins to the top itself. */
+@media (max-width: 760px) {
+  .controls { position: static; }
+  .ledger-head { top: 0; }
+}
 
 @media (max-width: 640px) {
   .ledger-head,
