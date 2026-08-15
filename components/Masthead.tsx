@@ -6,8 +6,6 @@ export default function Masthead({ hasProfile = false }: { hasProfile?: boolean 
   const cycleTheme = useCallback(() => {
     const cur = document.documentElement.getAttribute('data-theme')
     if (cur === 'dark') {
-      document.documentElement.setAttribute('data-theme', 'light')
-    } else if (cur === 'light') {
       document.documentElement.removeAttribute('data-theme')
     } else {
       document.documentElement.setAttribute('data-theme', 'dark')
